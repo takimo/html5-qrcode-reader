@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+<meta charset=utf-8 />
+<title>QRCode Reader</title>
+
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+<script type="text/javascript" src="zepto.min.js"></script>
+<script type="text/javascript" src="jsqrcode/grid.js"></script>
+<script type="text/javascript" src="jsqrcode/version.js"></script>
+<script type="text/javascript" src="jsqrcode/detector.js"></script>
+<script type="text/javascript" src="jsqrcode/formatinf.js"></script>
+<script type="text/javascript" src="jsqrcode/errorlevel.js"></script>
+<script type="text/javascript" src="jsqrcode/bitmat.js"></script>
+<script type="text/javascript" src="jsqrcode/datablock.js"></script>
+<script type="text/javascript" src="jsqrcode/bmparser.js"></script>
+<script type="text/javascript" src="jsqrcode/datamask.js"></script>
+<script type="text/javascript" src="jsqrcode/rsdecoder.js"></script>
+<script type="text/javascript" src="jsqrcode/gf256poly.js"></script>
+<script type="text/javascript" src="jsqrcode/gf256.js"></script>
+<script type="text/javascript" src="jsqrcode/decoder.js"></script>
+<script type="text/javascript" src="jsqrcode/qrcode.js"></script>
+<script type="text/javascript" src="jsqrcode/findpat.js"></script>
+<script type="text/javascript" src="jsqrcode/alignpat.js"></script>
+<script type="text/javascript" src="jsqrcode/databr.js"></script>
+
+<script>
+var CANVAS_IMAGE_WIDTH = 100;
+var reader = new FileReader();
+
+function loadImage(src, callback){
+	var img = new Image();
+	img.onload = function(){
+		callback(img);
+	};
+	img.src = src;
+}
+
+function decodeQRCode(src, callback){
+	qrcode.callback = callback;
+ 	qrcode.decode(src);
+}
+
+function drawImageToCanvas($targetCanvas, image){
+	var iw = image.width, ih = image.height;
+	var cw = CANVAS_IMAGE_WIDTH, ch = CANVAS_IMAGE_WIDTH * ih / iw;
+	$targetCanvas.width = cw;
+	$targetCanvas.height = ch;
+	var ctx = $targetCanvas.get(0).getContext('2d');
+	ctx.clearRect(0, 0, cw, ch);
+	ctx.drawImage(image, 0, 0, cw, ch);
+}
+
+function onLoadHandler(){
+	var $fileInput = $('#fileInput');
+	$fileInput.on('change', function() {
+		var file = $fileInput.get(0).files[0];
+		var src = (window.URL || window.webkitURL).createObjectURL(file);
+  		loadImage(src, function(image){
+  			drawImageToCanvas($('#resultCanvas'), image);
+			decodeQRCode(src, function(result){
+				var resultElement = $('<div></div>');
+				resultElement.addClass('alert');
+				try{
+					resultElement.html(result);
+					resultElement.addClass('alert-info');
+				}catch(e){
+					resultElement.html(result);
+					resultElement.addClass('alert-error');
+				}
+				$('#resultText').append(resultElement);
+			});
+  		})
+	});
+}
+
+window.onload = onLoadHandler;
+
+</script>
+</head>
+<body>
+	<div id="wrap">
+    	<!-- Begin page content -->
+     	<div class="container">
+        	<div class="page-header">
+          	<h1>QRCode Reader</h1>
+        	</div>
+        	<p class="lead">読み込ませたいQRCodeを選択・撮影してください</p>
+        	<input type="file" id="fileInput" /><br/>
+			<canvas id="resultCanvas" />
+    	</div>
+    	<h1>Log</h1>
+    	<div id="resultText"></div>
+    </div>
+</body>
+</html>
